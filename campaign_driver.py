@@ -323,7 +323,7 @@ class MockBackend:
         self.baudrate = baudrate
 
     def connect(self) -> None:
-        return None
+        pass
 
     def fingerprint(self) -> dict[str, Any]:
         return {
@@ -347,10 +347,10 @@ class MockBackend:
         return {"raw": "mock telemetry", "check_glitch": False}
 
     def reset_target(self) -> None:
-        return None
+        pass
 
     def close(self) -> None:
-        return None
+        pass
 
 
 def normalize_uart_text(text: str, volatile_regexes: Iterable[str] | None = None, lowercase: bool = False) -> str:
