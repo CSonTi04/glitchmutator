@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter, defaultdict, deque
 import dataclasses
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from collections import Counter, defaultdict, deque
 import json
 import logging
 import platform
@@ -161,7 +161,8 @@ class PicoGlitcherFindusBackend:
 
     def connect(self) -> None:
         cls = self._import_picoglitcher_class()
-        # TODO: adapt these constructor args to the actual PicoGlitcher / findus version on COM7
+        # TODO: adapt constructor kwargs for your local findus/PicoGlitcher API variant
+        # (some releases use port/baudrate kwargs, others auto-discover or use no kwargs).
         try:
             self.pg = cls(port=self.port, baudrate=self.baudrate)
         except TypeError:
@@ -200,7 +201,8 @@ class PicoGlitcherFindusBackend:
     def configure(self, config: GlitchConfig) -> None:
         if self.pg is None:
             raise RuntimeError("Backend not connected")
-        # TODO: adapt these calls to the actual PicoGlitcher / findus version on COM7
+        # TODO: map GlitchConfig -> exact findus calls for your firmware version
+        # (e.g., set_trigger/set_number_of_edges/set_pattern_match signatures may differ).
         if hasattr(self.pg, "set_frequency"):
             self.pg.set_frequency(config.glitch_clock_frequency)
         if hasattr(self.pg, "set_number_of_edges"):
@@ -211,7 +213,8 @@ class PicoGlitcherFindusBackend:
     def arm(self, config: GlitchConfig) -> None:
         if self.pg is None:
             raise RuntimeError("Backend not connected")
-        # TODO: adapt this call signature to actual firmware arm APIs.
+        # TODO: choose and map the arm primitive for your workshop mode:
+        # arm(), arm_double(), arm_multiplexing(), or arm_pulseshaping_from_config().
         if hasattr(self.pg, "arm"):
             self.pg.arm(config.holdoff_delay, config.pulse_length_ns or 20)
 
@@ -293,18 +296,19 @@ class PicoGlitcherRawPyboardBackend:
         }
 
     def configure(self, config: GlitchConfig) -> None:
-        # TODO: adapt these command snippets to actual pyboard REPL commands for this firmware build.
+        # TODO: replace with actual pyboard-REPL snippets:
+        # import PicoGlitcher, instantiate object, call set_frequency/set_pattern_match/etc.
         _ = config
 
     def arm(self, config: GlitchConfig) -> None:
-        # TODO: adapt to real arm command once COM7 pyboard control syntax is validated.
+        # TODO: replace with validated pyboard REPL arm command for your firmware.
         _ = config
 
     def wait_for_result(self, timeout_s: float) -> dict[str, Any]:
         return {"raw": self._read_banner(timeout_s=timeout_s), "check_glitch": None}
 
     def reset_target(self) -> None:
-        # TODO: adapt to firmware reset/power cycle command in pyboard REPL mode.
+        # TODO: implement reset_target()/power_cycle_target() command for pyboard REPL mode.
         pass
 
     def close(self) -> None:
@@ -620,8 +624,7 @@ def candidate_score(classification: ClassificationResult, novelty_score: float, 
         base -= 1.0
     else:
         base += 0.25
-    # Workshop note:
-    # This heuristic is intentionally simple. It is meant to make the search behavior explainable.
+    # Workshop note: this heuristic is intentionally simple so search decisions remain explainable.
     return base + (0.7 * novelty_score) + (0.5 * reproducibility_hint) - (0.35 * energy_score)
 
 
